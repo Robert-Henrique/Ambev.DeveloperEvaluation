@@ -1,9 +1,11 @@
-﻿using Ambev.DeveloperEvaluation.Domain.Entities;
+﻿using Ambev.DeveloperEvaluation.Application.Events;
+using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using Ambev.DeveloperEvaluation.Domain.Services.DiscountRules;
 using Ambev.DeveloperEvaluation.Domain.ValueObjects;
 using AutoMapper;
 using FluentValidation;
+using MassTransit;
 using MediatR;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
@@ -17,6 +19,7 @@ public class CreateSaleHandler : IRequestHandler<CreateSaleCommand, CreateSaleRe
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
     private readonly IDiscountStrategyFactory _discountStrategyFactory;
+    private readonly IPublishEndpoint _publishEndpoint;
 
     /// <summary>
     /// Initializes a new instance of CreateSaleHandler
@@ -24,16 +27,19 @@ public class CreateSaleHandler : IRequestHandler<CreateSaleCommand, CreateSaleRe
     /// <param name="saleRepository">The sale repository</param>
     /// <param name="mapper">The AutoMapper instance</param>
     /// <param name="discountStrategyFactory">The DiscountStrategyFactory instance</param>
-    /// <param name="userRepository">The user repository</param>
+    /// <param name="userRepository">The user repository instance</param>
+    /// <param name="publishEndpoint">The publish Endpoint instance</param>
     public CreateSaleHandler(ISaleRepository saleRepository, 
         IMapper mapper, 
         IDiscountStrategyFactory discountStrategyFactory, 
-        IUserRepository userRepository)
+        IUserRepository userRepository, 
+        IPublishEndpoint publishEndpoint)
     {
         _saleRepository = saleRepository;
         _mapper = mapper;
         _discountStrategyFactory = discountStrategyFactory;
         _userRepository = userRepository;
+        _publishEndpoint = publishEndpoint;
     }
 
     /// <summary>
@@ -58,8 +64,18 @@ public class CreateSaleHandler : IRequestHandler<CreateSaleCommand, CreateSaleRe
         var sale = MapSale(command, user);
         var createdSale = await _saleRepository.CreateAsync(sale, cancellationToken);
         var result = _mapper.Map<CreateSaleResult>(createdSale);
+
+        await PublishEvent(sale);
+
         return result;
     }
+
+    /// <summary>
+    /// Publishes a SaleCreated event with the given sale details.
+    /// </summary>
+    /// <param name="sale">The sale entity containing the sale ID and total amount.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async Task PublishEvent(Sale sale) => await _publishEndpoint.Publish(new SaleCreated(sale.Id, sale.TotalAmount));
 
     /// <summary>
     /// Maps the CreateSaleCommand to a Sale entity, initializing necessary properties.
