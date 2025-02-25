@@ -1,5 +1,4 @@
-﻿using Ambev.DeveloperEvaluation.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Ambev.DeveloperEvaluation.ORM.Mapping;
@@ -14,8 +13,8 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
 
         builder.Property(s => s.Number)
             .IsRequired()
-            .HasMaxLength(100);
-        
+            .HasColumnType("uuid").HasDefaultValueSql("gen_random_uuid()");
+
         builder.OwnsOne(s => s.Customer, customer =>
         {
             customer.Property(c => c.Id)

@@ -29,7 +29,7 @@ namespace Ambev.DeveloperEvaluation.ORM.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Number = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Number = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CustomerId = table.Column<Guid>(type: "uuid", nullable: false),
                     CustomerName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),

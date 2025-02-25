@@ -6,9 +6,9 @@
 public class CreateSaleRequest
 {
     /// <summary>
-    /// The name of the purchasing customer
+    /// The UserId of the purchasing customer
     /// </summary>
-    public string CustomerName { get; set; } = string.Empty;
+    public Guid UserId { get; set; }
 
     /// <summary>
     /// The name of the branch where the sale occurred

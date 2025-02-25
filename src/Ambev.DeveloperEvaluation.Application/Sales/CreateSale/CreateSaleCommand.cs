@@ -8,7 +8,7 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
 /// </summary>
 /// <remarks>
 /// This command is used to capture the required data for creating a sale, 
-/// including customerName, branchName and items. 
+/// including UserId, branchName and items. 
 /// It implements <see cref="IRequest{TResponse}"/> to initiate the request 
 /// that returns a <see cref="CreateSaleResult"/>.
 /// 
@@ -20,9 +20,9 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
 public class CreateSaleCommand : IRequest<CreateSaleResult>
 {
     /// <summary>
-    /// The name of the purchasing customer
+    /// The UserId of the purchasing customer
     /// </summary>
-    public string CustomerName { get; set; } = string.Empty;
+    public Guid UserId { get; set; }
 
     /// <summary>
     /// The name of the branch where the sale occurred

@@ -13,14 +13,14 @@ public class UpdateSaleRequest
     public Guid Id { get; set; }
 
     /// <summary>
-    /// The name of the customer for the sale.
+    /// The UserId of the purchasing customer
     /// </summary>
-    public string CustomerName { get; set; }
+    public Guid UserId { get; set; }
 
     /// <summary>
     /// The name of the branch for the sale.
     /// </summary>
-    public string BranchName { get; set; }
+    public string BranchName { get; set; } = string.Empty;
 
     /// <summary>
     /// The status of the sale.

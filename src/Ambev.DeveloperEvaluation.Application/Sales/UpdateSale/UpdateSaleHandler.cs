@@ -14,16 +14,21 @@ public class UpdateSaleHandler : IRequestHandler<UpdateSaleCommand, UpdateSaleRe
 {
     private readonly ISaleRepository _saleRepository;
     private readonly IMapper _mapper;
+    private readonly IUserRepository _userRepository;
 
     /// <summary>
     /// Initializes a new instance of UpdateSaleHandler
     /// </summary>
     /// <param name="saleRepository">The sale repository</param>
     /// <param name="mapper">The AutoMapper instance</param>
-    public UpdateSaleHandler(ISaleRepository saleRepository, IMapper mapper)
+    /// <param name="userRepository">The UserRepository instance</param>
+    public UpdateSaleHandler(ISaleRepository saleRepository, 
+        IMapper mapper, 
+        IUserRepository userRepository)
     {
         _saleRepository = saleRepository;
         _mapper = mapper;
+        _userRepository = userRepository;
     }
 
     /// <summary>
@@ -40,34 +45,32 @@ public class UpdateSaleHandler : IRequestHandler<UpdateSaleCommand, UpdateSaleRe
         if (!validationResult.IsValid)
             throw new ValidationException(validationResult.Errors);
 
-        var existingSale = await _saleRepository.GetByIdAsync(command.Id, cancellationToken);
-        if (existingSale == null)
+        var sale = await _saleRepository.GetByIdAsync(command.Id, cancellationToken);
+        if (sale == null)
             throw new KeyNotFoundException($"Sale with ID {command.Id} not found");
 
-        UpdateSale(command, existingSale);
-        UpdateItems(command, existingSale);
+        var user = await _userRepository.GetByIdAsync(command.UserId, cancellationToken);
+        if (user == null)
+            throw new KeyNotFoundException($"User with ID {command.UserId} not found");
 
-        var createdSale = await _saleRepository.UpdateAsync(existingSale, cancellationToken);
+        UpdateSale(command, sale, user);
+        UpdateItems(command, sale);
+
+        var createdSale = await _saleRepository.UpdateAsync(sale, cancellationToken);
         var result = _mapper.Map<UpdateSaleResult>(createdSale);
         return result;
     }
 
-    private static void UpdateItems(UpdateSaleCommand command, Sale existingSale)
+    private static void UpdateItems(UpdateSaleCommand command, Sale sale)
     {
         foreach (var item in command.Items)
-        {
-            var existingItem = existingSale.Items.FirstOrDefault(f => f.Id == item.Id);
-
-            if (existingItem != null)
-                existingItem.Status = item.Status;
-        }
+            sale.ChangeStatus(item.Id, item.Status);
     }
 
-    private static void UpdateSale(UpdateSaleCommand command, Sale existingSale)
+    private static void UpdateSale(UpdateSaleCommand command, Sale sale, User user)
     {
-        existingSale.Customer = new ExternalIdentity(Guid.NewGuid(), command.CustomerName);
-        existingSale.Branch = new ExternalIdentity(Guid.NewGuid(), command.BranchName);
-        existingSale.Date = DateTime.UtcNow;
-        existingSale.Status = command.Status;
+        var customer = new ExternalIdentity(user.Id, user.Username);
+        var branch = new ExternalIdentity(Guid.NewGuid(), command.BranchName);
+        sale.Update(customer, branch, command.Status);
     }
 }
