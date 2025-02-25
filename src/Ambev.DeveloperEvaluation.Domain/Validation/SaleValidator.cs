@@ -7,6 +7,9 @@ public class SaleValidator : AbstractValidator<Sale>
 {
     public SaleValidator()
     {
-        //TODO: Implementar as validações de dominio
+        RuleFor(sale => sale.Number).NotEmpty();
+        RuleFor(sale => sale.Customer).NotEmpty();
+        RuleFor(sale => sale.Branch).NotEmpty();
+        RuleFor(sale => sale.Items).NotEmpty();
     }
 }

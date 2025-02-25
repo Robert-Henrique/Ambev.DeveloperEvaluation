@@ -1,8 +1,8 @@
-﻿using Ambev.DeveloperEvaluation.Common.Validation;
-using Ambev.DeveloperEvaluation.Domain.Common;
+﻿using Ambev.DeveloperEvaluation.Domain.Common;
 using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.Domain.Validation;
 using Ambev.DeveloperEvaluation.Domain.ValueObjects;
+using FluentValidation;
 
 namespace Ambev.DeveloperEvaluation.Domain.Entities;
 
@@ -15,50 +15,66 @@ public class SaleItem : BaseEntity
     /// <summary>
     /// The product associated with this sale item.
     /// </summary>
-    public ExternalIdentity Product { get; set; }
+    public ExternalIdentity Product { get; private set; }
 
     /// <summary>
     /// The quantity of the product being sold.
     /// </summary>
-    public int Quantity { get; set; }
+    public int Quantity { get; private set; }
 
     /// <summary>
     /// The unit price of the product.
     /// </summary>
-    public Price UnitPrice { get; set; }
+    public Price UnitPrice { get; private set; }
 
     /// <summary>
     /// The discount applied to this sale item.
     /// </summary>
-    public decimal Discount { get; set; }
+    public decimal Discount { get; private set; }
 
     /// <summary>
     /// The total price of the sale item, calculated as (Unit Price * Quantity) - Discount.
     /// </summary>
-    private decimal _totalPrice;
-    public decimal TotalPrice
-    {
-        get => UnitPrice.Value * Quantity - Discount;
-        private set => _totalPrice = value;
-    }
+    public decimal TotalPrice => UnitPrice.Value * Quantity - Discount;
 
     /// <summary>
     /// The current status of the sale item.
     /// </summary>
-    public SaleItemStatus Status { get; set; } = SaleItemStatus.Active;
+    public SaleItemStatus Status { get; private set; }
+
+    private SaleItem() { }
+
+    public SaleItem(ExternalIdentity product, int quantity, Price unitPrice, decimal discount)
+    {
+        Product = product;
+        Quantity = quantity;
+        UnitPrice = unitPrice;
+        Discount = discount;
+        Status = SaleItemStatus.Active;
+
+        Validate();
+    }
 
     /// <summary>
-    /// Validates the SaleItem entity based on business rules.
+    /// Updates the status of the sale item.
     /// </summary>
-    /// <returns>A <see cref="ValidationResultDetail"/> containing validation results.</returns>
-    public ValidationResultDetail Validate()
+    /// <param name="status">The new status to be assigned to the sale item.</param>
+    public void Update(SaleItemStatus status)
+    {
+        Status = status;
+    }
+
+    /// <summary>
+    /// Validates the current sale instance against business rules.
+    /// If the validation fails, a <see cref="ValidationException"/> is thrown.
+    /// </summary>
+    /// <exception cref="ValidationException">Thrown if the sale entity is invalid.</exception>
+    private void Validate()
     {
         var validator = new SaleItemValidator();
         var result = validator.Validate(this);
-        return new ValidationResultDetail
-        {
-            IsValid = result.IsValid,
-            Errors = result.Errors.Select(o => (ValidationErrorDetail)o)
-        };
+
+        if (!result.IsValid)
+            throw new ValidationException(result.Errors);
     }
 }

@@ -7,6 +7,11 @@ public class SaleItemValidator : AbstractValidator<SaleItem>
 {
     public SaleItemValidator()
     {
-        //TODO: Implementar as validações de dominio
+        RuleFor(saleItem => saleItem.Product).NotEmpty();
+        RuleFor(saleItem => saleItem.Quantity).NotEmpty();
+        RuleFor(saleItem => saleItem.UnitPrice).NotEmpty();
+        RuleFor(saleItem => saleItem.Quantity)
+            .LessThanOrEqualTo(20)
+            .WithMessage("No item can have a quantity greater than 20.");
     }
 }

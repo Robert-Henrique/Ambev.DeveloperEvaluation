@@ -12,14 +12,14 @@ public class UpdateSaleCommand : IRequest<UpdateSaleResult>
     public Guid Id { get; set; }
 
     /// <summary>
-    /// The name of the customer for the sale.
+    /// The UserId of the purchasing customer
     /// </summary>
-    public string CustomerName { get; set; }
+    public Guid UserId { get; set; }
 
     /// <summary>
     /// The name of the branch for the sale.
     /// </summary>
-    public string BranchName { get; set; }
+    public string BranchName { get; set; } = string.Empty;
 
     /// <summary>
     /// The status of the sale.
@@ -29,7 +29,7 @@ public class UpdateSaleCommand : IRequest<UpdateSaleResult>
     /// <summary>
     /// The list of items to be updated for the sale.
     /// </summary>
-    public List<UpdateSaleItem> Items { get; set; } = new List<UpdateSaleItem>(0);
+    public IList<UpdateSaleItem> Items { get; set; } = new List<UpdateSaleItem>(0);
 
     public ValidationResultDetail Validate()
     {
